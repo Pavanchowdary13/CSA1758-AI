@@ -1,0 +1,89 @@
+import heapq
+
+class PuzzleState:
+    def _init_(self, board, empty_pos, moves=0, previous=None):
+        self.board = board
+        self.empty_pos = empty_pos
+        self.moves = moves
+        self.previous = previous
+        self.size = 3  
+        self.goal = [1, 2, 3, 4, 5, 6, 7, 8, 0] 
+
+    def is_goal(self):
+        return self.board == self.goal
+
+    def get_possible_moves(self):
+        x, y = self.empty_pos
+        possible_moves = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)] 
+        for dx, dy in directions:
+            new_x, new_y = x + dx, y + dy
+            if 0 <= new_x < self.size and 0 <= new_y < self.size:
+                new_empty_pos = (new_x, new_y)
+                new_board = self.swap(self.board, self.empty_pos, new_empty_pos)
+                possible_moves.append(PuzzleState(new_board, new_empty_pos, self.moves + 1, self))
+        return possible_moves
+
+    def swap(self, board, pos1, pos2):
+        new_board = board[:]
+        idx1 = pos1[0] * self.size + pos1[1]
+        idx2 = pos2[0] * self.size + pos2[1]
+        new_board[idx1], new_board[idx2] = new_board[idx2], new_board[idx1]
+        return new_board
+
+    def heuristic(self):
+    
+        distance = 0
+        for i in range(9):
+            if self.board[i] != 0:  
+                target_x, target_y = divmod(self.board[i] - 1, self.size)
+                current_x, current_y = divmod(i, self.size)
+                distance += abs(target_x - current_x) + abs(target_y - current_y)
+        return distance
+
+    def _lt_(self, other):
+        return (self.moves + self.heuristic()) < (other.moves + other.heuristic())
+
+def a_star(initial_board):
+    empty_pos = initial_board.index(0)
+    initial_state = PuzzleState(initial_board, (empty_pos // 3, empty_pos % 3))
+    
+    priority_queue = []
+    heapq.heappush(priority_queue, initial_state)
+    visited = set()
+    
+    while priority_queue:
+        current_state = heapq.heappop(priority_queue)
+        
+        if current_state.is_goal():
+            return current_state
+        
+        visited.add(tuple(current_state.board))
+        
+        for next_state in current_state.get_possible_moves():
+            if tuple(next_state.board) not in visited:
+                heapq.heappush(priority_queue, next_state)
+
+    return None  
+
+def print_solution(solution):
+    path = []
+    while solution:
+        path.append(solution.board)
+        solution = solution.previous
+    for step_number, step in enumerate(reversed(path), start=1):
+        print(f"Step {step_number}:")
+        print(step[:3])
+        print(step[3:6])
+        print(step[6:9])
+        print()
+
+if _name_ == "_main_":
+    initial_board = [1, 2, 3, 4, 0, 5, 6, 7, 8] 
+    solution = a_star(initial_board)
+    
+    if solution:
+        print("Solution found:")
+        print_solution(solution)
+    else:
+        print("No solution exists.")

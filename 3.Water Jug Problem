@@ -1,0 +1,58 @@
+from collections import deque
+
+def water_jug_bfs(a, b, target):
+    visited = set()
+    queue = deque()
+    queue.append((0, 0))
+    parent_map = {}
+    parent_map[(0, 0)] = None
+
+    while queue:
+        x, y = queue.popleft()
+        
+        if (x, y) in visited:
+            continue
+
+        if x == target or y == target:
+            return (x, y), parent_map
+
+        visited.add((x, y))
+
+        next_states = [
+            (a, y),
+            (x, b),
+            (0, y),
+            (x, 0),
+            (x - min(x, b - y), y + min(x, b - y)),
+            (x + min(y, a - x), y - min(y, a - x))
+        ]
+
+        for state in next_states:
+            if state not in visited:
+                queue.append(state)
+                parent_map[state] = (x, y)
+
+    return None, parent_map
+
+def get_solution_path(end_state, parent_map):
+    path = []
+    current_state = end_state
+    while current_state:
+        path.append(current_state)
+        current_state = parent_map[current_state]
+    path.reverse()
+    return path
+
+a = int(input("Enter the capacity of jug1: "))
+b = int(input("Enter the capacity of jug2: "))
+target = int(input("Enter the target amount of water: "))
+
+end_state, parent_map = water_jug_bfs(a, b, target)
+
+if end_state:
+    solution_path = get_solution_path(end_state, parent_map)
+    print(f"It's possible to measure exactly {target} liters.")
+    for i, state in enumerate(solution_path):
+        print(f"Step {i + 1}: Jug1 = {state[0]} liters, Jug2 = {state[1]} liters")
+else:
+    print(f"It's not possible to measure exactly {target} liters.")

@@ -1,0 +1,60 @@
+from collections import deque
+def v(s):
+    m1, c1, m2, c2, b = s
+    if m1 < 0 or c1 < 0 or m2 < 0 or c2 < 0:
+        return False
+    if m1 > 0 and m1 < c1:
+        return False
+    if m2 > 0 and m2 < c2:
+        return False
+    return True
+def n(s):
+    m1, c1, m2, c2, b = s
+    if b == 'l':
+        return [
+            (m1 - 2, c1, m2 + 2, c2, 'r'),
+            (m1 - 1, c1 - 1, m2 + 1, c2 + 1, 'r'),
+            (m1, c1 - 2, m2, c2 + 2, 'r'),
+            (m1 - 1, c1, m2 + 1, c2, 'r'),
+            (m1, c1 - 1, m2, c2 + 1, 'r')
+        ]
+    else:
+        return [
+            (m1 + 2, c1, m2 - 2, c2, 'l'),
+            (m1 + 1, c1 + 1, m2 - 1, c2 - 1, 'l'),
+            (m1, c1 + 2, m2, c2 - 2, 'l'),
+            (m1 + 1, c1, m2 - 1, c2, 'l'),
+            (m1, c1 + 1, m2, c2 - 1, 'l')
+        ]
+def bfs(s, g):
+    q = deque([s])
+    vtd = set()
+    p = {s: None}
+    while q:
+        st = q.popleft()
+        if st in vtd:
+            continue
+        vtd.add(st)
+        if st[:4] == g:
+            return p
+        for ns in n(st):
+            if v(ns) and ns not in vtd:
+                q.append(ns)
+                p[ns] = st
+    return None
+def r(p, s, e):
+    pt = []
+    while e is not None:
+        pt.append(e)
+        e = p[e]
+    pt.reverse()
+    return pt
+s = (3, 3, 0, 0, 'l')
+g = (0, 0, 3, 3)
+p = bfs(s, g)
+if p:
+    pt = r(p, s, (0, 0, 3, 3, 'r'))
+    for i, st in enumerate(pt):
+        print("step", i + 1, ":", st)
+else:
+    print("no solution found.")
